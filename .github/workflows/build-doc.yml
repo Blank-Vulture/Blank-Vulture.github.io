@@ -3,7 +3,7 @@ name: Build and Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - main  # トリガーしたいブランチを指定
 
 jobs:
   build-and-deploy:
@@ -13,22 +13,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get latest Docker version
-        id: get_version
-        run: |
-          # Get the latest release tag for Docker
-          latest_version=$(curl -s https://api.github.com/repos/moby/moby/releases/latest | jq -r '.tag_name')
-          # Extract numeric part of the version, if necessary
-          latest_version=${latest_version#v}
-          echo "Latest Docker version: $latest_version"
-          echo "DOCKER_VERSION=$latest_version" >> $GITHUB_ENV
-
       - name: Build documentation with Writerside
         uses: JetBrains/writerside-github-action@v4
         env:
-          INSTANCE: Writerside/hi
-          ARTIFACT: webHelpHI2-all.zip
-          DOCKER_VERSION: ${{ env.DOCKER_VERSION }}
+          INSTANCE: Writerside/hi  # モジュール名とインスタンスIDを指定
+          ARTIFACT: webHelpHI2-all.zip  # ビルダーが生成するアーティファクト名
+          DOCKER_VERSION: 241.18775  # 使用するWriterside Dockerビルダーのバージョン
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -41,4 +31,4 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
+          publish_dir: ./build  # アーティファクトの展開ディレクトリ
