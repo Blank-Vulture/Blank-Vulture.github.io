@@ -40,7 +40,7 @@ jobs:
         run: |
           echo "Generating Algolia indexes..."
           # Algolia用のインデックスを生成する
-          java -jar /opt/builder/help-publication-agent.jar generate-indexes \
+          java -jar help-publication-agent.jar generate-indexes \
           --output docs/${{ env.ALGOLIA_ARTIFACT }}
 
       - name: Save artifact with build results
