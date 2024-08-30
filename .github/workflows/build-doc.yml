@@ -36,15 +36,6 @@ jobs:
           artifact: ${{ env.ARTIFACT }}
           docker-version: ${{ env.DOCKER_VERSION }}
 
-      - name: Generate Algolia Indexes
-        run: |
-          echo "Generating Algolia indexes..."
-          # Writersideまたは適切なツールがインデックスを生成するコマンドをここに追加
-          # 例として、Writersideで提供されるコマンドや適切なスクリプトを実行:
-          java -jar /opt/builder/help-publication-agent.jar generate-indexes \
-          --output artifacts/${{ env.ALGOLIA_ARTIFACT }}
-          # 実際の生成コマンドを適切に指定してください
-
       - name: Save artifact with build results
         uses: actions/upload-artifact@v4
         with:
