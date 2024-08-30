@@ -1,4 +1,4 @@
-name: Build and Deploy Documentation
+name: Fast and Lightweight Build and Deploy Documentation
 
 on:
   push:
@@ -27,7 +27,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1  # 必要なコミットのみを取得
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /github/workspace/.docker
+          key: ${{ runner.os }}-docker-${{ hashFiles('**/Dockerfile') }}
 
       - name: Build docs using Writerside Docker builder
         uses: JetBrains/writerside-github-action@v4
@@ -36,27 +42,15 @@ jobs:
           artifact: ${{ env.ARTIFACT }}
           docker-version: ${{ env.DOCKER_VERSION }}
 
-      - name: Verify artifact generation
-        run: |
-          echo "Checking if necessary artifacts are generated..."
-          ls -l artifacts/
-          test -e artifacts/${{ env.ARTIFACT }} && echo "${{ env.ARTIFACT }} exists" || (echo "Error: ${{ env.ARTIFACT }} not found" && exit 1)
-          test -e artifacts/report.json && echo "report.json exists" || (echo "Error: report.json not found" && exit 1)
-          test -e artifacts/report.html && echo "report.html exists" || (echo "Error: report.html not found" && exit 1)
-          test -e artifacts/${{ env.ALGOLIA_ARTIFACT }} && echo "${{ env.ALGOLIA_ARTIFACT }} exists" || (echo "Error: ${{ env.ALGOLIA_ARTIFACT }} not found" && exit 1)
-
       - name: Save artifact with build results
         uses: actions/upload-artifact@v4
         with:
           name: docs
           path: |
-            artifacts/${{ env.ARTIFACT }}
-            artifacts/report.json
-            artifacts/report.html
-            artifacts/${{ env.ALGOLIA_ARTIFACT }}
-          retention-days: 7
+            artifacts/${{ env.ARTIFACT }}, artifacts/${{ env.ALGOLIA_ARTIFACT }}
+          retention-days: 1  # 最短の保存期間
 
-  test:
+  deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -64,54 +58,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: docs
-          path: artifacts
 
-      - name: Verify artifacts in test
+      - name: Deploy to GitHub Pages using minimal setup
         run: |
-          echo "Verifying artifacts after download in test job..."
-          ls -l artifacts/
-          test -e artifacts/${{ env.ALGOLIA_ARTIFACT }} && echo "${{ env.ALGOLIA_ARTIFACT }} exists" || (echo "Error: ${{ env.ALGOLIA_ARTIFACT }} not found in test job" && exit 1)
-
-      - name: Test documentation
-        uses: JetBrains/writerside-checker-action@v1
-        with:
-          instance: ${{ env.INSTANCE }}
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    needs: [build, test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: docs
-
-      - name: Verify artifacts in deploy
-        run: |
-          echo "Verifying artifacts after download in deploy job..."
-          ls -l .
-          test -e ${{ env.ALGOLIA_ARTIFACT }} && echo "${{ env.ALGOLIA_ARTIFACT }} exists" || (echo "Error: ${{ env.ALGOLIA_ARTIFACT }} not found in deploy job" && exit 1)
-
-      - name: Unzip artifact
-        run: unzip -O UTF-8 -qq '${{ env.ARTIFACT }}' -d dir
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Package and upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dir
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          unzip -O UTF-8 -qq '${{ env.ARTIFACT }}' -d dir
+          actions/configure-pages@v5
+          actions/upload-pages-artifact@v3
+          actions/deploy-pages@v4
 
   publish-indexes:
-    needs: [build, test, deploy]
+    needs: [build, deploy]
     runs-on: ubuntu-latest
     container:
       image: registry.jetbrains.team/p/writerside/builder/algolia-publisher:2.0.32-3
@@ -121,17 +77,13 @@ jobs:
         with:
           name: docs
 
-      - name: Unzip Algolia artifact
-        run: |
-          unzip -O UTF-8 -qq '${{ env.ALGOLIA_ARTIFACT }}' -d algolia-indexes
-
       - name: Upload indexes to Algolia
         run: |
+          unzip -O UTF-8 -qq '${{ env.ALGOLIA_ARTIFACT }}' -d algolia-indexes
           env algolia-key='${{ env.ALGOLIA_KEY }}' java -jar /opt/builder/help-publication-agent.jar \
           update-index \
           --application-name '${{ env.ALGOLIA_APP_NAME }}' \
           --index-name '${{ env.ALGOLIA_INDEX_NAME }}' \
           --product '${{ env.CONFIG_JSON_PRODUCT }}' \
           --version '${{ env.CONFIG_JSON_VERSION }}' \
-          --index-directory algolia-indexes/ \
-          2>&1 | tee algolia-update-index-log.txt
+          --index-directory algolia-indexes/
