@@ -6,7 +6,7 @@
 
 ###
 
-<img src="https://github.com/Blank-Vulture/Blank-Vulture.github.io/raw/output/snake.svg)" alt="Snake animation" />
+<img src="https://github.com/Blank-Vulture/Blank-Vulture.github.io/raw/output/snake.svg" alt="Snake animation" />
 
 ###
 
