@@ -92,8 +92,8 @@ jobs:
       - name: Verify artifacts in deploy
         run: |
           echo "Verifying artifacts after download in deploy job..."
-          ls -l artifacts/
-          test -e artifacts/${{ env.ALGOLIA_ARTIFACT }} && echo "${{ env.ALGOLIA_ARTIFACT }} exists" || (echo "Error: ${{ env.ALGOLIA_ARTIFACT }} not found in deploy job" && exit 1)
+          ls -l .
+          test -e ${{ env.ALGOLIA_ARTIFACT }} && echo "${{ env.ALGOLIA_ARTIFACT }} exists" || (echo "Error: ${{ env.ALGOLIA_ARTIFACT }} not found in deploy job" && exit 1)
 
       - name: Unzip artifact
         run: unzip -O UTF-8 -qq '${{ env.ARTIFACT }}' -d dir
