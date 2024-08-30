@@ -29,15 +29,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate Algolia Indexes
-        run: |
-          echo "Generating Algolia indexes..."
-          # Writersideまたは適切なツールがインデックスを生成するコマンドをここに追加
-          # 例として、Writersideで提供されるコマンドや適切なスクリプトを実行:
-          java -jar /opt/builder/help-publication-agent.jar generate-indexes \
-          --output artifacts/${{ env.ALGOLIA_ARTIFACT }}
-          # 実際の生成コマンドを適切に指定してください
-
       - name: Build docs using Writerside Docker builder
         uses: JetBrains/writerside-github-action@v4
         with:
