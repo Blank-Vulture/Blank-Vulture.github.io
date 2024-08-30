@@ -47,7 +47,7 @@ jobs:
         with:
           name: docs
           path: |
-            artifacts/${{ env.ARTIFACT }}, artifacts/${{ env.ALGOLIA_ARTIFACT }}
+            ${{ env.ARTIFACT }}, ${{ env.ALGOLIA_ARTIFACT }}
           retention-days: 1  # 最短の保存期間
 
   deploy:
