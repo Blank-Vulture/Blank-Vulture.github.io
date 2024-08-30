@@ -4,7 +4,7 @@
 
 <instance-profile id="v"
                  name="VultureNest"
-                 start-page="empty-md-topic.md">
+                 start-page="welcome-board.md">
 
-    <toc-element topic="empty-md-topic.md"/>
+    <toc-element topic="welcome-board.md"/>
 </instance-profile>

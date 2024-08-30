@@ -14,7 +14,7 @@ env:
   ARTIFACT: 'webHelpV2-all.zip'
   DOCKER_VERSION: '241.18775'
   ALGOLIA_ARTIFACT: 'algolia-indexes-V2.zip'
-  ALGOLIA_APP_NAME: 'VE5S3K1PFY'
+  ALGOLIA_APP_NAME: 'FJLBFRYT23'
   ALGOLIA_INDEX_NAME: 'VultureEcho'
   ALGOLIA_KEY: '${{ secrets.ALGOLIA_KEY }}'
   CONFIG_JSON_PRODUCT: 'V'
@@ -35,6 +35,15 @@ jobs:
           instance: ${{ env.INSTANCE }}
           artifact: ${{ env.ARTIFACT }}
           docker-version: ${{ env.DOCKER_VERSION }}
+
+      - name: Generate Algolia Indexes
+        run: |
+          echo "Generating Algolia indexes..."
+          # Writersideまたは適切なツールがインデックスを生成するコマンドをここに追加
+          # 例として、Writersideで提供されるコマンドや適切なスクリプトを実行:
+          java -jar /opt/builder/help-publication-agent.jar generate-indexes \
+          --output artifacts/${{ env.ALGOLIA_ARTIFACT }}
+          # 実際の生成コマンドを適切に指定してください
 
       - name: Save artifact with build results
         uses: actions/upload-artifact@v4
@@ -75,7 +84,7 @@ jobs:
         run: unzip -O UTF-8 -qq '${{ env.ARTIFACT }}' -d dir
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Package and upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -102,7 +111,4 @@ jobs:
           update-index \
           --application-name '${{env.ALGOLIA_APP_NAME}}' \
           --index-name '${{env.ALGOLIA_INDEX_NAME}}' \
-          --product '${{env.CONFIG_JSON_PRODUCT}}' \
-          --version '${{env.CONFIG_JSON_VERSION}}' \
-          --index-directory algolia-indexes/ \
-          2>&1 | tee algolia-update-index-log.txt
+          --product '${{env.CONFIG_JSON_PROD
